@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useSyncExternalStore } from 'react';
+import { useState, useCallback, useMemo, useSyncExternalStore, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,7 @@ import {
 // ==================== TYPES ====================
 
 export interface DayEntry {
-  date: string; // ISO date string when the day was practiced
+  date: string;
   phase: 'fana' | 'tajalli' | 'munajat' | 'beance';
   completed: boolean;
   journal: string;
@@ -36,6 +36,7 @@ interface ProgressTrackerProps {
 // ==================== CONSTANTS ====================
 
 const TOTAL_DAYS = 21;
+const EMPTY_ENTRIES: Record<number, DayEntry> = {};
 
 const PHASE_CONFIG: Record<
   'fana' | 'tajalli' | 'munajat' | 'beance',
@@ -104,25 +105,22 @@ function createEmptyEntry(day: number): DayEntry {
 
 // ==================== STORAGE ====================
 
-// Stable empty snapshot — must be a module-level constant to ensure referential stability
-const STORAGE_SNAPSHOT: Record<number, DayEntry> = Object.freeze({});
-
 function buildStorageKey(programId: string) {
   return `miracle-progress-${programId}`;
 }
 
-function readFromStorage(programId: string): Record<number, DayEntry> {
-  if (typeof window === 'undefined') return STORAGE_SNAPSHOT;
+function loadEntries(programId: string): Record<number, DayEntry> {
+  if (typeof window === 'undefined') return EMPTY_ENTRIES;
   try {
     const raw = localStorage.getItem(buildStorageKey(programId));
-    if (!raw) return STORAGE_SNAPSHOT;
+    if (!raw) return EMPTY_ENTRIES;
     return JSON.parse(raw);
   } catch {
-    return STORAGE_SNAPSHOT;
+    return EMPTY_ENTRIES;
   }
 }
 
-function writeToStorage(
+function saveEntries(
   programId: string,
   entries: Record<number, DayEntry>,
 ) {
@@ -132,41 +130,6 @@ function writeToStorage(
   } catch {
     // localStorage full — silently ignore
   }
-}
-
-// ==================== EXTERNAL STORE (useSyncExternalStore) ====================
-
-// Module-level cache ensures referentially stable snapshots.
-// useSyncExternalStore requires getSnapshot to return the same reference
-// when the underlying data hasn't changed, otherwise it causes re-renders.
-let _cachedRaw: string | null | undefined = undefined;
-let _cachedParsed: Record<number, DayEntry> = STORAGE_SNAPSHOT;
-
-const storeListeners = new Set<() => void>();
-
-function emitChange() {
-  // Invalidate cache so next getSnapshot re-reads from localStorage
-  _cachedRaw = undefined;
-  storeListeners.forEach((fn) => fn());
-}
-
-function subscribe(listener: () => void): () => void {
-  storeListeners.add(listener);
-  return () => { storeListeners.delete(listener); };
-}
-
-function getSnapshot(programId: string): Record<number, DayEntry> {
-  if (typeof window === 'undefined') return STORAGE_SNAPSHOT;
-  const raw = localStorage.getItem(buildStorageKey(programId));
-  if (raw !== _cachedRaw) {
-    _cachedRaw = raw;
-    _cachedParsed = raw ? JSON.parse(raw) : STORAGE_SNAPSHOT;
-  }
-  return _cachedParsed;
-}
-
-function getServerSnapshot(): Record<number, DayEntry> {
-  return STORAGE_SNAPSHOT;
 }
 
 // ==================== HELPERS ====================
@@ -195,7 +158,6 @@ function calculateStreaks(entries: Record<number, DayEntry>): {
   }
   longest = Math.max(longest, tempStreak);
 
-  // Current streak: count backwards from the latest completed day
   let current = 1;
   for (let i = completedDays.length - 2; i >= 0; i--) {
     if (completedDays[i] === completedDays[i + 1] - 1) {
@@ -210,19 +172,61 @@ function calculateStreaks(entries: Record<number, DayEntry>): {
 
 // ==================== COMPONENT ====================
 
+// Simple external store backed by localStorage.
+// useSyncExternalStore handles SSR/hydration via getServerSnapshot.
+const _store = {
+  _data: EMPTY_ENTRIES as Record<number, DayEntry>,
+  _listeners: new Set<() => void>(),
+  getSnapshot(): Record<number, DayEntry> { return this._data; },
+  subscribe(fn: () => void): () => void {
+    this._listeners.add(fn);
+    return () => { this._listeners.delete(fn); };
+  },
+  _emit() { this._listeners.forEach(fn => fn()); },
+  load(pid: string) {
+    this._data = loadEntries(pid);
+    this._emit();
+  },
+  update(pid: string, fn: (prev: Record<number, DayEntry>) => Record<number, DayEntry>) {
+    this._data = fn(this._data);
+    saveEntries(pid, this._data);
+    this._emit();
+  },
+};
+
+function _getServerSnapshot(): Record<number, DayEntry> {
+  return EMPTY_ENTRIES;
+}
+
+function useLocalStorageEntries(programId: string) {
+  const entries = useSyncExternalStore(
+    _store.subscribe,
+    _store.getSnapshot,
+    _getServerSnapshot,
+  );
+
+  // Load persisted data after hydration.
+  // This is safe: during SSR/hydration, getServerSnapshot returns EMPTY_ENTRIES.
+  // The effect fires after hydration, reads localStorage, and updates the store.
+  useEffect(() => {
+    _store.load(programId);
+  }, [programId]);
+
+  const update = useCallback(
+    (updater: (prev: Record<number, DayEntry>) => Record<number, DayEntry>) => {
+      _store.update(programId, updater);
+    },
+    [programId],
+  );
+
+  return [entries, update] as const;
+}
+
 export default function ProgressTracker({
   programId = 'default-21-days',
 }: ProgressTrackerProps) {
   const { toast } = useToast();
-
-  // Read from localStorage via useSyncExternalStore with cached snapshots.
-  // The module-level cache ensures referential stability between renders.
-  const entries = useSyncExternalStore(
-    subscribe,
-    () => getSnapshot(programId),
-    getServerSnapshot,
-  );
-
+  const [entries, updateEntries] = useLocalStorageEntries(programId);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
   // ==================== COMPUTED VALUES ====================
@@ -254,34 +258,35 @@ export default function ProgressTracker({
 
   const handleUpdateEntry = useCallback(
     (day: number, updates: Partial<DayEntry>) => {
-      const current = entries[day] || createEmptyEntry(day);
-      const updated: DayEntry = {
-        ...current,
-        ...updates,
-        date:
-          updates.completed && !current.date
-            ? new Date().toISOString()
-            : current.date,
-      };
-      const next = { ...entries, [day]: updated };
-      writeToStorage(programId, next);
-      emitChange();
+      updateEntries((prev) => {
+        const current = prev[day] || createEmptyEntry(day);
+        const updated: DayEntry = {
+          ...current,
+          ...updates,
+          date:
+            updates.completed && !current.date
+              ? new Date().toISOString()
+              : current.date,
+        };
+        return { ...prev, [day]: updated };
+      });
     },
-    [entries, programId],
+    [updateEntries],
   );
 
   const handleToggleComplete = useCallback(
     (day: number) => {
-      const current = entries[day] || createEmptyEntry(day);
-      const newCompleted = !current.completed;
-      const updated: DayEntry = {
-        ...current,
-        completed: newCompleted,
-        date: newCompleted ? new Date().toISOString() : '',
-      };
-      const next = { ...entries, [day]: updated };
-      writeToStorage(programId, next);
-      emitChange();
+      let newCompleted = false;
+      updateEntries((prev) => {
+        const current = prev[day] || createEmptyEntry(day);
+        newCompleted = !current.completed;
+        const updated: DayEntry = {
+          ...current,
+          completed: newCompleted,
+          date: newCompleted ? new Date().toISOString() : '',
+        };
+        return { ...prev, [day]: updated };
+      });
       if (newCompleted) {
         toast({
           title: `Jour ${day} complété ! ✨`,
@@ -289,17 +294,18 @@ export default function ProgressTracker({
         });
       }
     },
-    [entries, programId, toast],
+    [updateEntries, toast],
   );
 
   const handleResetProgram = useCallback(() => {
-    writeToStorage(programId, {});
-    emitChange();
-    toast({
-      title: 'Programme réinitialisé',
-      description: 'Toutes vos entrées ont été effacées.',
+    updateEntries(() => {
+      toast({
+        title: 'Programme réinitialisé',
+        description: 'Toutes vos entrées ont été effacées.',
+      });
+      return {};
     });
-  }, [programId, toast]);
+  }, [updateEntries, toast]);
 
   // ==================== RENDER ====================
 
