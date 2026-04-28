@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import ErrorCatch from '@/components/ErrorCatch';
 
 // Load the ENTIRE page content client-side only — zero SSR, zero hydration issues
 const HomePage = dynamic(() => import('./HomePage'), {
@@ -20,5 +21,9 @@ const HomePage = dynamic(() => import('./HomePage'), {
 });
 
 export default function Home() {
-  return <HomePage />;
+  return (
+    <ErrorCatch>
+      <HomePage />
+    </ErrorCatch>
+  );
 }
