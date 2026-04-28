@@ -27,6 +27,7 @@ Work Log:
 - Browser-tested all features: timers, checkboxes, textareas, prompt insertion, localStorage save
 - Fixed ESLint error in Timer component (setState in effect)
 - Fixed JSX parsing error in TOC map expression
+- Pushed to GitHub: https://github.com/Sounawa/L-Alchimie-du-Miroir
 
 Stage Summary:
 - Complete interactive book website built and deployed
@@ -35,3 +36,4 @@ Stage Summary:
 - Responsive design verified on desktop/tablet/mobile
 - Zero lint errors, zero console errors
 - Book contains: Cover, TOC, Introduction, Chapters I-VI, Annexes (Glossary, Journal, Resources), Back Cover
+- Published to GitHub: https://github.com/Sounawa/L-Alchimie-du-Miroir
