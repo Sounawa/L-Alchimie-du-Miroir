@@ -1,14 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* Vercel-compatible: no "standalone" output */
+  output: "export",
+  basePath: "/L-Alchimie-du-Miroir",
+  images: {
+    unoptimized: true,
+  },
   typescript: {
     ignoreBuildErrors: false,
   },
   reactStrictMode: true,
-  allowedDevOrigins: [
-    "*.space-z.ai",
-  ],
 };
 
 export default nextConfig;

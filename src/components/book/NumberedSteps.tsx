@@ -20,7 +20,7 @@ export default function NumberedSteps({ children }: NumberedStepsProps) {
 }
 
 interface StepProps {
-  stepNumber: number;
+  stepNumber?: number;
   title: string;
   children: ReactNode;
 }
