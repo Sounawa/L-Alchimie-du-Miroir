@@ -1,6 +1,7 @@
 'use client';
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useSyncExternalStore } from 'react';
+import dynamic from 'next/dynamic';
 
 import Timer from '@/components/book/Timer';
 import GuidedMeditation from '@/components/book/GuidedMeditation';
@@ -14,10 +15,46 @@ import OrnamentDivider from '@/components/book/OrnamentDivider';
 import BookTable from '@/components/book/BookTable';
 import { CheckboxItem } from '@/components/book/CheckboxItem';
 import { PromptChip } from '@/components/book/MunajatWriter';
-import ProgressTracker from '@/components/book/ProgressTracker';
+const ProgressTracker = dynamic(() => import('@/components/book/ProgressTracker'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center my-8 py-12">
+      <p style={{ fontFamily: 'var(--font-inter)', fontSize: '13px', color: '#8B6914' }}>
+        Chargement du suivi de progression…
+      </p>
+    </div>
+  ),
+});
 import { useToast } from '@/hooks/use-toast';
 
+// Safe client-only mount detection using useSyncExternalStore
+const emptySubscribe = () => () => {};
+function useHydrated() {
+  return useSyncExternalStore(emptySubscribe, () => true, () => false);
+}
+
 export default function Home() {
+  const mounted = useHydrated();
+
+  if (!mounted) {
+    return (
+      <div className="book-body">
+        <div className="book-container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '48px', marginBottom: '16px' }}>🪞</div>
+            <p style={{ fontFamily: 'var(--font-cormorant)', fontSize: '20px', color: '#8B6914' }}>
+              Chargement…
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <HomeInner />;
+}
+
+function HomeInner() {
   const munajatRef = useRef<HTMLTextAreaElement>(null);
   const [munajatText, setMunajatText] = useState('');
   const [startDate, setStartDate] = useState(() => {
