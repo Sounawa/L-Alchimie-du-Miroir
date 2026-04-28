@@ -3,6 +3,7 @@
 import { useRef, useState, useCallback } from 'react';
 
 import Timer from '@/components/book/Timer';
+import GuidedMeditation from '@/components/book/GuidedMeditation';
 import ExerciseBox, { WritingArea } from '@/components/book/ExerciseBox';
 import QuoteBlock from '@/components/book/QuoteBlock';
 import Callout from '@/components/book/Callout';
@@ -13,6 +14,7 @@ import OrnamentDivider from '@/components/book/OrnamentDivider';
 import BookTable from '@/components/book/BookTable';
 import { CheckboxItem } from '@/components/book/CheckboxItem';
 import { PromptChip } from '@/components/book/MunajatWriter';
+import ProgressTracker from '@/components/book/ProgressTracker';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Home() {
@@ -520,14 +522,10 @@ export default function Home() {
             </Step>
           </NumberedSteps>
 
-          <Timer
-            id="fana"
-            duration={300}
-            label="🪞 Méditation du Fana — L'Effacement"
-            subtitle="Trouvez un endroit calme. Allongez-vous ou asseyez-vous confortablement."
-          />
-
           <ExerciseBox title="Journal du Fana">
+            <p className="book-p" style={{ marginBottom: '12px', opacity: 0.7, fontStyle: 'italic', fontSize: '14px' }}>
+              ✍️ Remplissez votre journal <strong>avant ou après</strong> la méditation — à votre rythme.
+            </p>
             <WritingArea
               placeholder="Que s'est-il passé pendant la méditation ? Avez-vous ressenti un apaisement, ou au contraire plus d'agitation ? Soyez honnête."
               minHeight="120px"
@@ -544,19 +542,57 @@ export default function Home() {
             />
           </ExerciseBox>
 
-          <Callout type="warning" title="🔔 Signes à observer">
+          <Callout type="warning" title="🔔 À savoir">
             <p className="book-p" style={{ marginBottom: '12px' }}>
-              <strong>Signes normaux :</strong> somnolence, agitation mentale, ennui,
-              pensées répétitives. Tout cela est normal et fait partie du processus. Ne vous
-              découragez pas.
+              <strong>C&apos;est tout à fait normal de :</strong> ressentir de la somnolence,
+              avoir l&apos;esprit qui vagabonde, s&apos;ennuyer, ou ne rien sentir du tout.
+              La méditation est un entraînement — soyez indulgent avec vous-même.
             </p>
             <p className="book-p" style={{ marginBottom: 0 }}>
-              <strong>Signes qui doivent vous alerter :</strong> si vous ressentez une peur
-              intense, des visions effrayantes, ou si vous vous sentez &laquo; possédé &raquo;.
-              Arrêtez immédiatement, faites des ablutions, récitez la sourate Al-Falaq et
-              Al-Nas, et consultez un savant.
+              <strong>Si quelque chose vous met mal à l&apos;aise :</strong> il est toujours bon
+              de faire une pause, de faire ses ablutions, de réciter les sourates Al-Falaq et
+              Al-Nas (les deux protectrices), et d&apos;en parler à une personne de confiance.
+              Votre bien-être passe avant tout.
             </p>
           </Callout>
+
+          <GuidedMeditation
+            id="fana-guided"
+            title="🪞 Méditation guidée du Fana — L'Effacement"
+            subtitle="Trouvez un endroit calme. Allongez-vous ou asseyez-vous confortablement."
+            steps={[
+              {
+                title: 'Installez-vous',
+                description: 'Dos droit, mains sur les genoux. Fermez les yeux ou gardez le regard baissé vers le Coran.',
+                duration: 15,
+                icon: '🧘',
+              },
+              {
+                title: 'Respirez profondément',
+                description: 'Inspirez 4 sec par le nez. Retenez 4 sec. Expirez 6 sec par la bouche. Relâchez chaque couche de tension.',
+                duration: 30,
+                icon: '🌬️',
+              },
+              {
+                title: 'Nommez vos vagues',
+                description: 'Quand une pensée surgit, nommez-la : « pensée », « inquiétude », « souvenir ». Ne vous attachez à aucune.',
+                duration: 120,
+                icon: '🌊',
+              },
+              {
+                title: 'Plongez dans l\'Océan',
+                description: 'Prononcez intérieurement « Allāh » très doucement. Comme un appel. Laissez ce nom résonner dans votre cœur.',
+                duration: 60,
+                icon: '💧',
+              },
+              {
+                title: 'Revenez doucement',
+                description: 'Restez un instant dans le silence. Prenez conscience de votre corps. Ouvrez les yeux. Remerciez Allah.',
+                duration: 30,
+                icon: '🌅',
+              },
+            ]}
+          />
 
           <span className="page-number">9</span>
         </section>
@@ -685,14 +721,10 @@ export default function Home() {
             ]}
           />
 
-          <Timer
-            id="tajalli"
-            duration={420}
-            label="🪞 Méditation du Tajalli — L'Inversion"
-            subtitle="Choisissez un verset. Lisez-le lentement. Laissez le miroir opérer."
-          />
-
           <ExerciseBox title="Journal du Tajalli">
+            <p className="book-p" style={{ marginBottom: '12px', opacity: 0.7, fontStyle: 'italic', fontSize: '14px' }}>
+              ✍️ Remplissez votre journal <strong>avant ou après</strong> la méditation — à votre rythme.
+            </p>
             <WritingArea
               placeholder="Quel verset avez-vous choisi pour cette méditation ? Pourquoi celui-ci ?"
               minHeight="120px"
@@ -708,6 +740,13 @@ export default function Home() {
               minHeight="120px"
             />
           </ExerciseBox>
+
+          <Timer
+            id="tajalli"
+            duration={420}
+            label="🪞 Méditation du Tajalli — L'Inversion"
+            subtitle="Choisissez un verset. Lisez-le lentement. Laissez le miroir opérer."
+          />
 
           <span className="page-number">13</span>
         </section>
@@ -830,13 +869,6 @@ export default function Home() {
             </div>
           </div>
 
-          <Timer
-            id="munajat"
-            duration={300}
-            label="🪞 Méditation de la Munajat — Le Dialogue"
-            subtitle="Parlez à Allah avec votre cœur. Pas besoin de beaux mots."
-          />
-
           <ExerciseBox title="Votre Munajat">
             <p className="book-p">
               Utilisez cet espace pour écrire votre dialogue intime avec Allah. Vous pouvez
@@ -880,6 +912,13 @@ export default function Home() {
               </button>
             </div>
           </ExerciseBox>
+
+          <Timer
+            id="munajat"
+            duration={300}
+            label="🪞 Méditation de la Munajat — Le Dialogue"
+            subtitle="Parlez à Allah avec votre cœur. Pas besoin de beaux mots."
+          />
 
           <span className="page-number">17</span>
         </section>
@@ -1196,6 +1235,8 @@ export default function Home() {
               minHeight="120px"
             />
           </ExerciseBox>
+
+          <ProgressTracker />
 
           <span className="page-number">25</span>
         </section>
