@@ -174,23 +174,25 @@ function calculateStreaks(entries: Record<number, DayEntry>): {
 
 // Simple external store backed by localStorage.
 // useSyncExternalStore handles SSR/hydration via getServerSnapshot.
+// IMPORTANT: Use arrow functions to avoid `this` binding issues when
+// these methods are passed as callbacks to useSyncExternalStore.
 const _store = {
   _data: EMPTY_ENTRIES as Record<number, DayEntry>,
   _listeners: new Set<() => void>(),
-  getSnapshot(): Record<number, DayEntry> { return this._data; },
-  subscribe(fn: () => void): () => void {
-    this._listeners.add(fn);
-    return () => { this._listeners.delete(fn); };
+  getSnapshot: (): Record<number, DayEntry> => _store._data,
+  subscribe: (fn: () => void): () => void => {
+    _store._listeners.add(fn);
+    return () => { _store._listeners.delete(fn); };
   },
-  _emit() { this._listeners.forEach(fn => fn()); },
-  load(pid: string) {
-    this._data = loadEntries(pid);
-    this._emit();
+  _emit: () => { _store._listeners.forEach(fn => fn()); },
+  load: (pid: string) => {
+    _store._data = loadEntries(pid);
+    _store._emit();
   },
-  update(pid: string, fn: (prev: Record<number, DayEntry>) => Record<number, DayEntry>) {
-    this._data = fn(this._data);
-    saveEntries(pid, this._data);
-    this._emit();
+  update: (pid: string, fn: (prev: Record<number, DayEntry>) => Record<number, DayEntry>) => {
+    _store._data = fn(_store._data);
+    saveEntries(pid, _store._data);
+    _store._emit();
   },
 };
 
