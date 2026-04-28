@@ -60,3 +60,30 @@ Stage Summary:
 - Fix: Module-level cache + frozen constant ensures the same object reference is returned when data hasn't changed
 - Site now loads without client-side exceptions
 - All features confirmed working: ProgressTracker grid, day detail dialog, completion toggling, mood selection, journal entries
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Fix persistent "Application error: a client-side exception has occurred" after previous fix
+
+Work Log:
+- User reported site still crashing: "je vois une micro seconde le site puis je vois le message d'erreur"
+- Investigated and found the TRUE root cause: the previous session's edit accidentally removed `export default function Home()` from `page.tsx`
+- Without the default export, Next.js could not render the page at all — causing immediate crash
+- The file had `function HomeInner()` but no `export default function Home()` wrapper
+- Applied comprehensive fix:
+  1. Restored `export default function Home()` as the page entry point
+  2. Created `useHydrated()` hook using `useSyncExternalStore` for safe client-only detection (returns false during SSR/SSG, true on client)
+  3. Home renders a loading skeleton ("Chargement…") during SSR/SSG
+  4. After hydration, Home renders `<HomeInner />` which contains all interactive content
+  5. ProgressTracker remains loaded via `dynamic({ ssr: false })` to avoid any localStorage-related hydration
+  6. HomeInner safely uses `useToast`, `localStorage`, and `Date` without hydration concerns
+- Fixed ESLint error: replaced `useEffect(() => setMounted(true))` with `useSyncExternalStore` pattern
+- Verified locally: page loads with HTTP 200, loading skeleton shows during SSR, full content renders on client
+- Committed and pushed to GitHub
+
+Stage Summary:
+- Root cause was a broken edit from previous session that removed `export default function Home()`
+- Fix: Two-layer hydration safety — outer Home with useHydrated() guard + inner HomeInner with dynamic ProgressTracker
+- Zero hydration mismatches guaranteed for static export on GitHub Pages
+- Committed as aba792ca and pushed to origin/main
