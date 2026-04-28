@@ -37,3 +37,26 @@ Stage Summary:
 - Zero lint errors, zero console errors
 - Book contains: Cover, TOC, Introduction, Chapters I-VI, Annexes (Glossary, Journal, Resources), Back Cover
 - Published to GitHub: https://github.com/Sounawa/L-Alchimie-du-Miroir
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix client-side exception error on deployed site
+
+Work Log:
+- Diagnosed the root cause: `ProgressTracker.tsx` used `useSyncExternalStore` with an unstable server snapshot `() => ({})` that created a new empty object on every call
+- This caused infinite re-renders during hydration when the server-rendered empty snapshot differed from the client-side localStorage data
+- Fixed by implementing a proper cached snapshot system:
+  - Added `STORAGE_SNAPSHOT` — a frozen module-level constant for referential stability
+  - Added `getSnapshot()` with module-level `_cachedRaw`/`_cachedParsed` cache that returns the same reference when data hasn't changed
+  - Added `getServerSnapshot()` that returns the stable `STORAGE_SNAPSHOT` constant
+  - Added `emitChange()` that invalidates the cache before notifying subscribers
+  - Removed the previous `useState`+`useEffect` fallback approach that caused lint errors
+- Verified fix with agent-browser: zero console errors, all interactive elements render correctly
+- Lint passes cleanly with zero errors
+
+Stage Summary:
+- Root cause: `useSyncExternalStore` requires referentially stable snapshots; the original code returned a new `{}` object on every `getServerSnapshot()` call
+- Fix: Module-level cache + frozen constant ensures the same object reference is returned when data hasn't changed
+- Site now loads without client-side exceptions
+- All features confirmed working: ProgressTracker grid, day detail dialog, completion toggling, mood selection, journal entries

@@ -104,18 +104,21 @@ function createEmptyEntry(day: number): DayEntry {
 
 // ==================== STORAGE ====================
 
+// Stable empty snapshot — must be a module-level constant to ensure referential stability
+const STORAGE_SNAPSHOT: Record<number, DayEntry> = Object.freeze({});
+
 function buildStorageKey(programId: string) {
   return `miracle-progress-${programId}`;
 }
 
 function readFromStorage(programId: string): Record<number, DayEntry> {
-  if (typeof window === 'undefined') return {};
+  if (typeof window === 'undefined') return STORAGE_SNAPSHOT;
   try {
     const raw = localStorage.getItem(buildStorageKey(programId));
-    if (!raw) return {};
+    if (!raw) return STORAGE_SNAPSHOT;
     return JSON.parse(raw);
   } catch {
-    return {};
+    return STORAGE_SNAPSHOT;
   }
 }
 
@@ -131,20 +134,39 @@ function writeToStorage(
   }
 }
 
-// ==================== EXTERNAL STORE (for useSyncExternalStore) ====================
+// ==================== EXTERNAL STORE (useSyncExternalStore) ====================
 
-// Global listener registry so useSyncExternalStore works correctly
-const listeners = new Set<() => void>();
+// Module-level cache ensures referentially stable snapshots.
+// useSyncExternalStore requires getSnapshot to return the same reference
+// when the underlying data hasn't changed, otherwise it causes re-renders.
+let _cachedRaw: string | null | undefined = undefined;
+let _cachedParsed: Record<number, DayEntry> = STORAGE_SNAPSHOT;
+
+const storeListeners = new Set<() => void>();
 
 function emitChange() {
-  listeners.forEach((fn) => fn());
+  // Invalidate cache so next getSnapshot re-reads from localStorage
+  _cachedRaw = undefined;
+  storeListeners.forEach((fn) => fn());
 }
 
-function subscribe(fn: () => void) {
-  listeners.add(fn);
-  return () => {
-    listeners.delete(fn);
-  };
+function subscribe(listener: () => void): () => void {
+  storeListeners.add(listener);
+  return () => { storeListeners.delete(listener); };
+}
+
+function getSnapshot(programId: string): Record<number, DayEntry> {
+  if (typeof window === 'undefined') return STORAGE_SNAPSHOT;
+  const raw = localStorage.getItem(buildStorageKey(programId));
+  if (raw !== _cachedRaw) {
+    _cachedRaw = raw;
+    _cachedParsed = raw ? JSON.parse(raw) : STORAGE_SNAPSHOT;
+  }
+  return _cachedParsed;
+}
+
+function getServerSnapshot(): Record<number, DayEntry> {
+  return STORAGE_SNAPSHOT;
 }
 
 // ==================== HELPERS ====================
@@ -193,11 +215,12 @@ export default function ProgressTracker({
 }: ProgressTrackerProps) {
   const { toast } = useToast();
 
-  // Read from localStorage via useSyncExternalStore (SSR-safe)
+  // Read from localStorage via useSyncExternalStore with cached snapshots.
+  // The module-level cache ensures referential stability between renders.
   const entries = useSyncExternalStore(
     subscribe,
-    () => readFromStorage(programId),
-    () => ({}) as Record<number, DayEntry>, // server snapshot
+    () => getSnapshot(programId),
+    getServerSnapshot,
   );
 
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
@@ -240,8 +263,9 @@ export default function ProgressTracker({
             ? new Date().toISOString()
             : current.date,
       };
-      writeToStorage(programId, { ...entries, [day]: updated });
-      emitChange(); // trigger re-render via useSyncExternalStore
+      const next = { ...entries, [day]: updated };
+      writeToStorage(programId, next);
+      emitChange();
     },
     [entries, programId],
   );
@@ -250,10 +274,14 @@ export default function ProgressTracker({
     (day: number) => {
       const current = entries[day] || createEmptyEntry(day);
       const newCompleted = !current.completed;
-      handleUpdateEntry(day, {
+      const updated: DayEntry = {
+        ...current,
         completed: newCompleted,
         date: newCompleted ? new Date().toISOString() : '',
-      });
+      };
+      const next = { ...entries, [day]: updated };
+      writeToStorage(programId, next);
+      emitChange();
       if (newCompleted) {
         toast({
           title: `Jour ${day} complété ! ✨`,
@@ -261,7 +289,7 @@ export default function ProgressTracker({
         });
       }
     },
-    [entries, handleUpdateEntry, toast],
+    [entries, programId, toast],
   );
 
   const handleResetProgram = useCallback(() => {
