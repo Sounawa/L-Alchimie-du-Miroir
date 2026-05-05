@@ -1,91 +1,95 @@
 "use client";
 
-import { Reveal } from "./shared";
+import { Reveal, Divider } from "./shared";
 
-interface NavItem {
-  id: string;
-  label: string;
-  page?: number;
-}
-
-const NAV_ITEMS: NavItem[] = [
-  { id: "introduction", label: "Introduction", page: 3 },
-  { id: "chapitre-1", label: "Les Fondations & Garde-fous", page: 5 },
-  { id: "chapitre-2", label: "L'Effacement (Fana)", page: 9 },
-  { id: "chapitre-3", label: "L'Inversion (Tajalli)", page: 13 },
-  { id: "chapitre-4", label: "Le Dialogue (Munajat)", page: 17 },
-  { id: "chapitre-5", label: "La Béance (Le Désert)", page: 21 },
-  { id: "chapitre-6", label: "Programme sur 21 Jours", page: 25 },
-  { id: "annexes", label: "Annexes", page: 29 },
+const CHAPTERS = [
+  { id: "introduction", num: "01", title: "Introduction", desc: "Pourquoi ce livre" },
+  { id: "chapitre-1", num: "02", title: "Les Fondations", desc: "Règles d'or & garde-fous" },
+  { id: "chapitre-2", num: "03", title: "Fana", desc: "L'Effacement — apaiser les vagues" },
+  { id: "chapitre-3", num: "04", title: "Tajalli", desc: "L'Inversion — le miroir coranique" },
+  { id: "chapitre-4", num: "05", title: "Munajat", desc: "Le Dialogue intime avec Allah" },
+  { id: "chapitre-5", num: "06", title: "La Béance", desc: "Le Désert — le silence sacré" },
+  { id: "chapitre-6", num: "07", title: "21 Jours", desc: "Programme progressif" },
+  { id: "annexes", num: "08", title: "Annexes", desc: "Glossaire & ressources" },
 ];
 
 export function TableOfContents() {
-  const handleClick = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
-    <section className="py-20 md:py-28 px-6 md:px-8">
+    <section className="py-24 md:py-32 px-6 md:px-8 section-warm">
       <div className="max-w-2xl mx-auto">
         <Reveal>
-          <h1 className="font-bold mb-10 text-center"
-            style={{
-              fontFamily: "var(--font-cormorant), Georgia, serif",
-              fontSize: "clamp(2rem, 5vw, 2.75rem)",
-              color: "var(--navy)",
-            }}
-          >
+          <h2 className="font-bold text-center mb-2" style={{
+            fontFamily: "var(--font-cormorant), Georgia, serif",
+            fontSize: "clamp(1.8rem, 4vw, 2.4rem)",
+            color: "#1a1a1a",
+            letterSpacing: "-0.01em",
+          }}>
             Sommaire
-          </h1>
+          </h2>
+          <p className="text-center text-sm mb-14" style={{
+            fontFamily: "var(--font-inter), sans-serif",
+            color: "#A8A29E",
+          }}>
+            Votre parcours vers la lumière intérieure
+          </p>
         </Reveal>
 
         <Reveal delay={0.1}>
-          <div className="space-y-1">
-            {NAV_ITEMS.map((item, index) => (
+          <div className="space-y-0">
+            {CHAPTERS.map((ch, i) => (
               <button
-                key={item.id}
-                onClick={() => handleClick(item.id)}
-                className="flex justify-between items-baseline w-full py-3.5 px-4 rounded-xl transition-all duration-200 hover:bg-amber-50 cursor-pointer text-left group"
+                key={ch.id}
+                onClick={() => scrollTo(ch.id)}
+                className="group w-full flex items-center gap-5 py-5 px-4 rounded-2xl transition-all duration-300 cursor-pointer text-left"
                 style={{
-                  borderBottom: "1px dotted rgba(184,134,11,0.2)",
-                  fontFamily: "var(--font-cormorant), Georgia, serif",
+                  borderBottom: i < CHAPTERS.length - 1 ? "1px solid rgba(231,229,228,0.5)" : "none",
                 }}
               >
-                <span className="text-[17px] text-foreground group-hover:text-[var(--gold-dark)] transition-colors">
-                  {item.page && (
-                    <span className="text-xs font-semibold mr-3" style={{
-                      fontFamily: "var(--font-inter), sans-serif",
-                      color: "var(--gold)",
-                    }}>
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                  )}
-                  {item.label}
+                <span className="text-[11px] font-semibold tabular-nums shrink-0 w-7" style={{
+                  fontFamily: "var(--font-inter), sans-serif",
+                  color: "#C4A265",
+                  opacity: 0.7,
+                  transition: "opacity 0.3s",
+                }}>
+                  {ch.num}
                 </span>
-                {item.page && (
-                  <span className="text-xs font-medium shrink-0 ml-4" style={{
-                    fontFamily: "var(--font-inter), sans-serif",
-                    color: "var(--gold-dark)",
+                <div className="flex-1 min-w-0">
+                  <span className="block text-[17px] font-semibold transition-colors duration-200 group-hover:text-[#8B7340]" style={{
+                    fontFamily: "var(--font-cormorant), Georgia, serif",
+                    color: "#1a1a1a",
                   }}>
-                    {item.page}
+                    {ch.title}
                   </span>
-                )}
+                  <span className="block text-[13px] mt-0.5" style={{
+                    fontFamily: "var(--font-inter), sans-serif",
+                    color: "#A8A29E",
+                  }}>
+                    {ch.desc}
+                  </span>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                  className="shrink-0 text-[#D6CEC4] opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1 group-hover:translate-x-0"
+                  style={{ transform: "translateX(-4px)", transition: "all 0.3s" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = "translateX(0)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = "translateX(-4px)")}
+                >
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
               </button>
             ))}
           </div>
         </Reveal>
 
         <Reveal delay={0.3}>
-          <div className="text-center my-12 text-xl tracking-[0.5em]" style={{ color: "var(--gold)" }}>
-            &#10086; &#10086; &#10086;
-          </div>
-          <p className="text-center italic" style={{
+          <Divider symbol="◆" />
+          <p className="text-center italic text-base" style={{
             fontFamily: "var(--font-cormorant), Georgia, serif",
-            fontSize: "16px",
-            color: "#7A6E63",
+            color: "#A8A29E",
           }}>
             &laquo; Celui qui se connaît soi-même connaît son Seigneur. &raquo;
           </p>
