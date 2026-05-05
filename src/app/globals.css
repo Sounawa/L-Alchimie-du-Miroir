@@ -1,0 +1,211 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Custom color tokens for the book */
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-gold-dark: var(--gold-dark);
+  --color-navy: var(--navy);
+  --color-navy-light: var(--navy-light);
+  --color-cream: var(--cream);
+  --color-cream-dark: var(--cream-dark);
+  --color-parchment: var(--parchment);
+  --color-sage: var(--sage);
+  --color-rose: var(--rose-muted);
+}
+
+:root {
+  --radius: 0.75rem;
+
+  /* Premium warm palette - Claude AI inspired */
+  --background: #FAF8F5;
+  --foreground: #2C2420;
+  --card: #FFFFFF;
+  --card-foreground: #2C2420;
+  --popover: #FFFFFF;
+  --popover-foreground: #2C2420;
+  --primary: #2C2420;
+  --primary-foreground: #FAF8F5;
+  --secondary: #F5F0EB;
+  --secondary-foreground: #2C2420;
+  --muted: #F5F0EB;
+  --muted-foreground: #8C7A6B;
+  --accent: #F5F0EB;
+  --accent-foreground: #2C2420;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #E8E0D8;
+  --input: #E8E0D8;
+  --ring: #B8923E;
+
+  /* Book-specific colors */
+  --gold: #B8923E;
+  --gold-light: #D4A853;
+  --gold-dark: #8B6914;
+  --navy: #1B2A4A;
+  --navy-light: #243557;
+  --cream: #FAF8F5;
+  --cream-dark: #F0EBE3;
+  --parchment: #F5EDD8;
+  --sage: #6B8E6B;
+  --rose-muted: #B0848C;
+
+  --chart-1: #B8923E;
+  --chart-2: #1B2A4A;
+  --chart-3: #6B8E6B;
+  --chart-4: #B0848C;
+  --chart-5: #D4A853;
+
+  --sidebar: #FAF8F5;
+  --sidebar-foreground: #2C2420;
+  --sidebar-primary: #2C2420;
+  --sidebar-primary-foreground: #FAF8F5;
+  --sidebar-accent: #F5F0EB;
+  --sidebar-accent-foreground: #2C2420;
+  --sidebar-border: #E8E0D8;
+  --sidebar-ring: #B8923E;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-cream text-foreground;
+  }
+
+  /* Premium scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #D4C8B8;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #B8923E;
+  }
+
+  /* Arabic text styling */
+  .arabic-display {
+    font-family: var(--font-amiri), "Traditional Arabic", serif;
+    direction: rtl;
+    font-size: 2rem;
+    line-height: 2.2;
+    color: var(--gold-dark);
+  }
+
+  .arabic-inline {
+    font-family: var(--font-amiri), "Traditional Arabic", serif;
+    direction: rtl;
+    font-size: 1.15em;
+    color: var(--gold-dark);
+  }
+
+  /* Smooth scroll */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Selection color */
+  ::selection {
+    background: rgba(184, 146, 62, 0.2);
+    color: var(--navy);
+  }
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.7s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-shimmer {
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 3s ease-in-out infinite;
+}
