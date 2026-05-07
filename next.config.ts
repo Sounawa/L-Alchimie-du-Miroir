@@ -1,10 +1,12 @@
 import type { NextConfig } from "next";
 
+const isStaticBuild = process.env.STATIC_BUILD === "1";
+
 const nextConfig: NextConfig = {
-  output: "export",
-  basePath: "/L-Alchimie-du-Miroir",
+  output: isStaticBuild ? "export" : undefined,
+  basePath: isStaticBuild ? "/L-Alchimie-du-Miroir" : undefined,
   images: {
-    unoptimized: true,
+    unoptimized: isStaticBuild,
   },
   typescript: {
     ignoreBuildErrors: true,
