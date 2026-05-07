@@ -29,8 +29,22 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build
-        run: STATIC_BUILD=1 bun run build
+      - name: Build with basePath for GitHub Pages
+        env:
+          NEXT_PUBLIC_BASE_PATH: "/L-Alchimie-du-Miroir"
+        run: |
+          # Create production config with export + basePath
+          cat > next.config.prod.mjs << 'EOF'
+          export default {
+            output: "export",
+            basePath: "/L-Alchimie-du-Miroir",
+            images: { unoptimized: true },
+            typescript: { ignoreBuildErrors: true },
+            reactStrictMode: false,
+          };
+          EOF
+          cp next.config.prod.mjs next.config.ts
+          bun run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

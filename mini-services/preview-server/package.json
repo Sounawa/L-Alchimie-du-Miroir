@@ -1,0 +1,6 @@
+{
+  "name": "preview-server",
+  "scripts": {
+    "dev": "bun --hot index.ts"
+  }
+}
