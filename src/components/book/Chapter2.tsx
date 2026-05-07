@@ -1,6 +1,6 @@
 "use client";
 
-import { Reveal, ParallaxSection, H1, H2, Body, Divider, Quote, Callout, Step, JournalCard, MeditationTimer } from "./shared";
+import { Reveal, ParallaxSection, H1, H2, Body, Divider, Quote, Callout, Step, JournalCard, MeditationTimer, JournalTextarea } from "./shared";
 
 const FANA_STEPS = [
   { icon: "\ud83e\uddd8", label: "Installez-vous", duration: 15 },
@@ -102,17 +102,9 @@ export function Chapter2() {
           <p className="mb-4 text-sm" style={{ color: "#7A6E63", fontStyle: "italic" }}>
             Remplissez votre journal <strong>avant ou apres</strong> la meditation &mdash; a votre rythme.
           </p>
-          <textarea
-            placeholder="Que s'est-il passe pendant la meditation ? Avez-vous ressenti un apaisement, ou au contraire plus d'agitation ? Soyez honnete."
-            className="mb-4"
-          />
-          <textarea
-            placeholder="Quelles 'vagues' (pensees, emotions) sont revenues le plus souvent ? Y a-t-il un theme recurrent ?"
-            className="mb-4"
-          />
-          <textarea
-            placeholder="Avez-vous eu un moment de silence interieur, meme bref ? Decrivez-le avec vos propres mots."
-          />
+          <JournalTextarea id="chapitre-2.experience" placeholder="Que s'est-il passe pendant la meditation ? Avez-vous ressenti un apaisement, ou au contraire plus d'agitation ? Soyez honnete." className="mb-4" />
+          <JournalTextarea id="chapitre-2.vagues" placeholder="Quelles 'vagues' (pensees, emotions) sont revenues le plus souvent ? Y a-t-il un theme recurrent ?" className="mb-4" />
+          <JournalTextarea id="chapitre-2.silence" placeholder="Avez-vous eu un moment de silence interieur, meme bref ? Decrivez-le avec vos propres mots." />
         </JournalCard>
       </Reveal>
 

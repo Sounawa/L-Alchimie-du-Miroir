@@ -2,6 +2,7 @@
 
 import { motion, useInView, useScroll, useTransform, useMotionValue, AnimatePresence } from "framer-motion";
 import { useRef, useState, useEffect, ReactNode, useCallback } from "react";
+import { useJournalStore, SECTIONS } from "@/lib/journal-store";
 
 /* ═══════════════════════════════════════════════
    SCROLL PROGRESS BAR
@@ -557,5 +558,250 @@ export function MeditationTimer({
         </div>
       </div>
     </motion.div>
+  );
+}
+
+/* ═══════════════════════════════════════════════
+   JOURNAL TEXTAREA (connected to store)
+   ═══════════════════════════════════════════════ */
+interface JournalTextareaProps {
+  id: string;
+  placeholder?: string;
+  className?: string;
+  defaultValue?: string;
+  style?: React.CSSProperties;
+}
+
+export function JournalTextarea({ id, placeholder, className = "", defaultValue, style }: JournalTextareaProps) {
+  const setEntry = useJournalStore((s) => s.setEntry);
+  const entries = useJournalStore((s) => s.entries);
+  const value = entries[id] ?? defaultValue ?? "";
+
+  return (
+    <textarea
+      value={value}
+      onChange={(e) => setEntry(id, e.target.value)}
+      placeholder={placeholder}
+      className={className}
+      style={style}
+    />
+  );
+}
+
+/* ═══════════════════════════════════════════════
+   RECAP PANEL
+   ═══════════════════════════════════════════════ */
+export function RecapPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const entries = useJournalStore((s) => s.entries);
+  const getFormattedRecap = useJournalStore((s) => s.getFormattedRecap);
+  const [copied, setCopied] = useState(false);
+
+  const filledEntries = Object.entries(entries).filter(([, v]) => v.trim().length > 0);
+
+  // Group by section
+  const grouped: Record<string, [string, string][]> = {};
+  for (const [id, content] of filledEntries) {
+    const sectionId = id.split(".")[0];
+    if (!grouped[sectionId]) grouped[sectionId] = [];
+    grouped[sectionId].push([id, content]);
+  }
+
+  const handleCopy = async () => {
+    const text = getFormattedRecap();
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      // Fallback
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  };
+
+  const handleDownload = () => {
+    const text = getFormattedRecap();
+    if (!text) return;
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "journal-alchimie-du-miroir.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-sm"
+          />
+
+          {/* Panel */}
+          <motion.div
+            initial={{ opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: "100%" }}
+            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            className="fixed top-0 right-0 bottom-0 z-[61] w-full max-w-md bg-white shadow-2xl flex flex-col"
+          >
+            {/* Header */}
+            <div className="px-6 py-5 border-b flex items-center justify-between" style={{ borderColor: "#E7E5E4" }}>
+              <div>
+                <h2 className="font-bold text-lg" style={{
+                  fontFamily: "var(--font-cormorant), Georgia, serif",
+                  color: "#1a1a1a",
+                }}>
+                  Mon Journal
+                </h2>
+                <p className="text-xs mt-0.5" style={{
+                  fontFamily: "var(--font-inter), sans-serif",
+                  color: "#A8A29E",
+                }}>
+                  {filledEntries.length} entre{filledEntries.length !== 1 ? "s" : ""} remplie{filledEntries.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
+                style={{ color: "#78716C", background: "#F4F1EC" }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-5">
+              {filledEntries.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <div className="text-4xl mb-4 opacity-30">&#128221;</div>
+                  <p className="text-sm" style={{
+                    fontFamily: "var(--font-cormorant), Georgia, serif",
+                    color: "#A8A29E",
+                    fontSize: "16px",
+                  }}>
+                    Aucune ecriture pour le moment.
+                  </p>
+                  <p className="text-xs mt-2" style={{
+                    fontFamily: "var(--font-inter), sans-serif",
+                    color: "#D6CEC4",
+                  }}>
+                    Remplissez les journaux dans chaque chapitre pour les voir ici.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {Object.entries(grouped).map(([sectionId, items]) => {
+                    const section = SECTIONS[sectionId];
+                    return (
+                      <div key={sectionId}>
+                        <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{
+                          fontFamily: "var(--font-inter), sans-serif",
+                          color: "#8B7340",
+                        }}>
+                          {section ? section.title : sectionId}
+                        </h3>
+                        <div className="space-y-3 pl-3 border-l-2" style={{ borderColor: "rgba(196,162,101,0.2)" }}>
+                          {items.map(([id, content]) => {
+                            const label = id.split(".").slice(1).join(" ").replace(/-/g, " ");
+                            return (
+                              <div key={id}>
+                                <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{
+                                  fontFamily: "var(--font-inter), sans-serif",
+                                  color: "#A8A29E",
+                                }}>
+                                  {label}
+                                </p>
+                                <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{
+                                  fontFamily: "var(--font-cormorant), Georgia, serif",
+                                  color: "#44403C",
+                                  fontSize: "15px",
+                                }}>
+                                  {content.trim().length > 200
+                                    ? content.trim().slice(0, 200) + "..."
+                                    : content.trim()}
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            {filledEntries.length > 0 && (
+              <div className="px-6 py-4 border-t flex gap-3" style={{ borderColor: "#E7E5E4", background: "#FAFAF8" }}>
+                <motion.button
+                  onClick={handleCopy}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer"
+                  style={{
+                    fontFamily: "var(--font-inter), sans-serif",
+                    background: copied ? "#5F8A6B" : "#2C3945",
+                    color: "#FAF5ED",
+                  }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {copied ? (
+                    <>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Copie !
+                    </>
+                  ) : (
+                    <>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      Tout copier
+                    </>
+                  )}
+                </motion.button>
+                <motion.button
+                  onClick={handleDownload}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer border"
+                  style={{
+                    fontFamily: "var(--font-inter), sans-serif",
+                    borderColor: "#E7E5E4",
+                    color: "#57534E",
+                    background: "white",
+                  }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  .txt
+                </motion.button>
+              </div>
+            )}
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

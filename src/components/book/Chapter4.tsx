@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Reveal, ParallaxSection, H1, H2, Body, Divider, Quote, Callout, JournalCard, MeditationTimer } from "./shared";
+import { Reveal, ParallaxSection, H1, H2, Body, Divider, Quote, Callout, JournalCard, MeditationTimer, JournalTextarea } from "./shared";
 
 const MUNAJAT_STEPS = [
   { icon: "\ud83d\udcdd", label: "Choisissez votre invite", duration: 60 },
@@ -153,11 +153,7 @@ export function Chapter4() {
             commencer par l&rsquo;un des invites ci-dessus, ou ecrire librement.{" "}
             <strong>Soyez sincere</strong> &mdash; c&rsquo;est le seul critere qui compte.
           </p>
-          <textarea
-            placeholder={selectedPrompt || "Ecrivez votre dialogue avec Allah ici..."}
-            defaultValue={selectedPrompt}
-            style={{ minHeight: "180px" }}
-          />
+          <JournalTextarea id="chapitre-4.munajat" placeholder={selectedPrompt || "Ecrivez votre dialogue avec Allah ici..."} defaultValue={selectedPrompt} style={{ minHeight: "180px" }} />
         </JournalCard>
       </Reveal>
     </ParallaxSection>

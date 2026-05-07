@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Reveal, ParallaxSection, H1, H2, Body, Divider, Quote, Callout, Step, PremiumTable, JournalCard, MeditationTimer } from "./shared";
+import { Reveal, ParallaxSection, H1, H2, Body, Divider, Quote, Callout, Step, PremiumTable, JournalCard, MeditationTimer, JournalTextarea } from "./shared";
 
 const BEANCE_STEPS = [
   { icon: "\ud83d\ude36", label: "Asseyez-vous en silence", duration: 180 },
@@ -175,9 +175,7 @@ export function Chapter5() {
               </label>
             ))}
           </div>
-          <textarea
-            placeholder="Comment vous sentez-vous maintenant ? Notez librement vos observations."
-          />
+          <JournalTextarea id="chapitre-5.observations" placeholder="Comment vous sentez-vous maintenant ? Notez librement vos observations." />
         </JournalCard>
       </Reveal>
     </ParallaxSection>

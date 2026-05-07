@@ -1,6 +1,7 @@
 "use client";
 
-import { Reveal, Divider, Quote, ScrollProgress, BackToTop } from "@/components/book/shared";
+import { useState } from "react";
+import { Reveal, Divider, Quote, ScrollProgress, BackToTop, RecapPanel } from "@/components/book/shared";
 import { Navigation } from "@/components/book/Navigation";
 import { Hero } from "@/components/book/Hero";
 import { TableOfContents } from "@/components/book/TableOfContents";
@@ -12,6 +13,8 @@ import { Chapter4 } from "@/components/book/Chapter4";
 import { Chapter5 } from "@/components/book/Chapter5";
 import { Chapter6 } from "@/components/book/Chapter6";
 import { Annexes } from "@/components/book/Annexes";
+import { useJournalStore } from "@/lib/journal-store";
+import { motion, AnimatePresence } from "framer-motion";
 
 function Footer() {
   return (
@@ -85,7 +88,72 @@ function Footer() {
   );
 }
 
+function RecapButton({ onClick }: { onClick: () => void }) {
+  const count = useJournalStore((s) => s.getFilledCount());
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <motion.button
+      onClick={onClick}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      className="fixed bottom-8 left-8 z-50 cursor-pointer rounded-2xl flex items-center gap-2.5 pl-4 pr-3 py-3 shadow-lg border"
+      style={{
+        background: hovered ? "white" : "rgba(255,255,255,0.92)",
+        backdropFilter: "blur(16px)",
+        borderColor: hovered ? "rgba(196,162,101,0.3)" : "rgba(231,229,228,0.7)",
+        boxShadow: hovered ? "0 8px 32px rgba(0,0,0,0.1)" : "0 2px 12px rgba(0,0,0,0.06)",
+        transition: "all 0.3s",
+      }}
+      whileHover={{ y: -2 }}
+      whileTap={{ scale: 0.97 }}
+    >
+      <div className="flex items-center gap-2">
+        <div className="relative w-8 h-8 rounded-xl flex items-center justify-center" style={{
+          background: "linear-gradient(135deg, #2C3945, #3A4D5C)",
+          boxShadow: "0 2px 8px rgba(44,57,69,0.25)",
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FAF5ED" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+          {count > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{
+              fontFamily: "var(--font-inter), sans-serif",
+              background: "#C4A265",
+              color: "white",
+              boxShadow: "0 1px 4px rgba(196,162,101,0.4)",
+            }}>
+              {count}
+            </span>
+          )}
+        </div>
+        <AnimatePresence mode="wait">
+          {hovered && (
+            <motion.span
+              initial={{ opacity: 0, width: 0 }}
+              animate={{ opacity: 1, width: "auto" }}
+              exit={{ opacity: 0, width: 0 }}
+              className="text-xs font-medium whitespace-nowrap overflow-hidden"
+              style={{
+                fontFamily: "var(--font-inter), sans-serif",
+                color: "#57534E",
+              }}
+            >
+              Mon journal
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.button>
+  );
+}
+
 export default function Home() {
+  const [recapOpen, setRecapOpen] = useState(false);
+
   return (
     <div className="min-h-screen" style={{ fontFamily: "var(--font-cormorant), Georgia, serif" }}>
       <ScrollProgress />
@@ -103,6 +171,8 @@ export default function Home() {
         <Annexes />
       </main>
       <Footer />
+      <RecapButton onClick={() => setRecapOpen(true)} />
+      <RecapPanel open={recapOpen} onClose={() => setRecapOpen(false)} />
       <BackToTop />
     </div>
   );

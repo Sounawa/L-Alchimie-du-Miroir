@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Reveal, ParallaxSection, H1, H2, Body, Divider, Callout, Step, PremiumTable, JournalCard } from "./shared";
+import { Reveal, ParallaxSection, H1, H2, Body, Divider, Callout, Step, PremiumTable, JournalCard, JournalTextarea } from "./shared";
 
 export function Chapter1() {
   const [checkedSpace, setCheckedSpace] = useState<Record<number, boolean>>({});
@@ -148,17 +148,9 @@ export function Chapter1() {
           <p className="mb-4 font-semibold" style={{ fontFamily: "var(--font-cormorant), Georgia, serif", fontSize: "17px" }}>
             Prenez un moment pour repondre sincerement a ces questions :
           </p>
-          <textarea
-            placeholder="Pourquoi souhaitez-vous mediter le Coran ? Quelle est votre intention profonde ?"
-            className="mb-4"
-          />
-          <textarea
-            placeholder="Quelle est votre plus grande difficulte dans votre relation actuelle avec le Coran ?"
-            className="mb-4"
-          />
-          <textarea
-            placeholder="Quel est votre engagement concret pour les 21 prochains jours ? (ex: 10 min chaque matin avant Fajr)"
-          />
+          <JournalTextarea id="chapitre-1.intention" placeholder="Pourquoi souhaitez-vous mediter le Coran ? Quelle est votre intention profonde ?" className="mb-4" />
+          <JournalTextarea id="chapitre-1.difficulte" placeholder="Quelle est votre plus grande difficulte dans votre relation actuelle avec le Coran ?" className="mb-4" />
+          <JournalTextarea id="chapitre-1.engagement" placeholder="Quel est votre engagement concret pour les 21 prochains jours ? (ex: 10 min chaque matin avant Fajr)" />
         </JournalCard>
       </Reveal>
     </ParallaxSection>

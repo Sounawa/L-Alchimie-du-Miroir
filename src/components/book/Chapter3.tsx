@@ -1,6 +1,6 @@
 "use client";
 
-import { Reveal, ParallaxSection, H1, H2, Body, Divider, Quote, Step, PremiumTable, JournalCard, MeditationTimer } from "./shared";
+import { Reveal, ParallaxSection, H1, H2, Body, Divider, Quote, Step, PremiumTable, JournalCard, MeditationTimer, JournalTextarea } from "./shared";
 
 const TAJALLI_STEPS = [
   { icon: "\ud83d\udd0d", label: "Choisissez un verset", duration: 60 },
@@ -134,17 +134,9 @@ export function Chapter3() {
           <p className="mb-4 text-sm" style={{ color: "#7A6E63", fontStyle: "italic" }}>
             Remplissez votre journal <strong>avant ou apres</strong> la meditation &mdash; a votre rythme.
           </p>
-          <textarea
-            placeholder="Quel verset avez-vous choisi ? Qu'est-ce qui vous a touche en premier ?"
-            className="mb-4"
-          />
-          <textarea
-            placeholder="Que vous revele ce verset a propos de vous-meme ? Soyez honnete."
-            className="mb-4"
-          />
-          <textarea
-            placeholder="Quelle action concrete pouvez-vous entreprendre suite a cette decouverte ?"
-          />
+          <JournalTextarea id="chapitre-3.verset" placeholder="Quel verset avez-vous choisi ? Qu'est-ce qui vous a touche en premier ?" className="mb-4" />
+          <JournalTextarea id="chapitre-3.revelation" placeholder="Que vous revele ce verset a propos de vous-meme ? Soyez honnete." className="mb-4" />
+          <JournalTextarea id="chapitre-3.action" placeholder="Quelle action concrete pouvez-vous entreprendre suite a cette decouverte ?" />
         </JournalCard>
       </Reveal>
     </ParallaxSection>

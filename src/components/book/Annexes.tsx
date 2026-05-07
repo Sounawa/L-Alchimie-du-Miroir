@@ -1,6 +1,6 @@
 "use client";
 
-import { Reveal, ParallaxSection, H1, H2, Body, Divider, PremiumTable, JournalCard } from "./shared";
+import { Reveal, ParallaxSection, H1, H2, Body, Divider, PremiumTable, JournalCard, JournalTextarea } from "./shared";
 
 const GLOSSARY = [
   { arabic: "\u062a\u062f\u0628\u0631", name: "Tadabbur", pronunciation: "(ta-dab-bour)", definition: "La rumination profonde \u2014 lire le Coran lentement en reflechissant a chaque mot, chaque sens, chaque implication pour sa propre vie." },
@@ -104,7 +104,7 @@ export function Annexes() {
             <label className="block text-xs font-medium mb-2" style={{ fontFamily: "var(--font-inter), sans-serif", color: "#7A6E63" }}>
               Observations
             </label>
-            <textarea placeholder="Que s'est-il passe pendant la meditation ?" />
+            <JournalTextarea id="annexes.observations" placeholder="Que s'est-il passe pendant la meditation ?" />
           </div>
         </JournalCard>
       </Reveal>
