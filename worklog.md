@@ -67,3 +67,30 @@ Stage Summary:
 - MeditationTimer, PremiumTable, JournalCard, Callout, Step, Quote all properly used
 - ESLint passes with 0 errors
 - Dev server compiles successfully
+
+---
+Task ID: 3
+Agent: Main
+Task: Configure site for GitHub Pages, push to GitHub, and deploy
+
+Work Log:
+- Updated next.config.ts: output: "export", basePath: "/L-Alchimie-du-Miroir", images: { unoptimized: true }
+- Removed API route (src/app/api/route.ts) - incompatible with static export
+- Added public/.nojekyll to prevent Jekyll processing
+- Added public/404.html for client-side routing fallback
+- Updated package.json: name "l-alchimie-du-miroir", cleaned scripts (removed db/prisma commands)
+- Created .github/workflows/deploy.yml with GitHub Actions for automatic deployment
+- Tested static build: bun run build → success, output in /out with correct basePath
+- Created GitHub repo (already existed): Sounawa/L-Alchimie-du-Miroir
+- Pushed code to GitHub (2 commits)
+- Enabled GitHub Pages via API (build_type: workflow)
+- Verified deployment: site returns HTTP 200 with correct content
+- Created journal-store.ts (Zustand) for RecapPanel feature
+- Added RecapButton (floating bottom-left) and RecapPanel (slide-in from right) to page.tsx
+- RecapPanel: grouped entries by section, copy-to-clipboard, download as .txt
+
+Stage Summary:
+- Site live at https://sounawa.github.io/L-Alchimie-du-Miroir/
+- GitHub Actions workflow auto-deploys on push to main
+- Static export with basePath working correctly
+- Recap/journal feature with copy & download functionality
